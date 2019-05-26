@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
+from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
+
+import fastai.vision as vi
 
 
-from fastai import *
-from fastai.vision import *
-
-BATCH_SIZE = 8
+BATCH_SIZE = 16
 
 
 db_file = '/media/wd/data/cells/db.p'
@@ -13,15 +13,25 @@ df = pd.read_pickle(db_file)
 df['layer'] = df['layer'].replace(['6a', '6b'], 6)
 df['layer'] = df['layer'].replace('2/3', 2)
 df['layer'] = df['layer'].astype('int')
-n_classes = len(np.unique(df['layer']))
+# CLASSES = ['2', '4', '5', '6']
+CLASSES = ['spiny', 'aspiny']
+n_classes = len(CLASSES)
 
 np.random.seed(42)
-data = ImageDataBunch.from_folder('data/images/3dgaf_copy', train="train", valid='test',
-        ds_tfms=None, num_workers=4, bs=8).normalize(imagenet_stats)
+data = vi.ImageDataBunch.from_folder('data/images/3dgadf_copy', train="train", valid='test',
+                                  ds_tfms=vi.get_transforms(do_flip=False), bs=16)
+data.normalize()
 
-learn = create_cnn(data, models.resnet50, metrics=accuracy)
-learn.unfreeze()
-learn.lr_find()
+learn = vi.cnn_learner(data, vi.models.resnet50, metrics=vi.accuracy)
 
-learn.fit_one_cycle(10, max_lr=slice(1e-6, 3e-5))
-learn.save('stage0_GAFD')
+learn.fit(epochs=100, lr=0.01)
+
+learn.save('3dgadf')
+pred = []
+for item in data.valid_ds:
+        pred.append(str(learn.predict(item[0])[0]))
+true = [str(x) for x in data.valid_ds.y]
+acc = accuracy_score(true, pred)
+c = confusion_matrix(true, pred)
+print(c)
+print(acc)

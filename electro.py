@@ -6,7 +6,7 @@ from multiprocessing import Pool
 from scipy.misc import imsave
 import os
 
-from eda import get_common_sample_frequency
+import eda
 
 
 db_file = '/media/wd/data/cells/db.p'
@@ -15,7 +15,7 @@ df['sampling_rate'] = df['sampling_rate'].astype('float')
 df['layer'] = df['layer'].replace(['6a', '6b'], 6)
 df['layer'] = df['layer'].replace('2/3', 2)
 df['layer'] = df['layer'].astype('int')
-SAMPLE_RATE = get_common_sample_frequency(df)
+SAMPLE_RATE = eda.get_common_sample_frequency(df)
 IMG_SIZE = 224
 
 
@@ -49,18 +49,13 @@ def convert_cell(cell: int, df: pd.DataFrame, out_dir:str):
     file_to_image(cell_file_name, out_dir, stim_file_name, resample=int(current_sample_rate/SAMPLE_RATE))
 
 
-def move_to_class_folder(cell, sort_by, out_dir):
-    class_name = df.loc[cell][sort_by]
-    class_dir = out_dir + str(class_name)
-    if not os.path.exists(class_dir):
-        os.makedirs(class_dir)
-    os.rename('{}{}.png'.format(out_dir,cell), '{}{}/{}.png'.format(out_dir, class_name, cell ))
+
 
 
 if __name__ == '__main__':
-    out_dir = 'data/images/3dgadf/'
+    out_dir = 'data/images/3dgadf_copy/'
     # pool = Pool()
     cells = df.index
     for cell in cells:
         # convert_cell(cell, df, out_dir)
-        move_to_class_folder(cell, 'dendrite_type', out_dir)
+        eda.move_to_class_folder(cell, 'dendrite_type', out_dir)
