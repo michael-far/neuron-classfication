@@ -7,7 +7,8 @@ from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 import pandas as pd
 import pickle
-
+from sequence_gen import SequenceGen
+import os
 
 db_file = '/media/wd/data/cells/db.p'
 df = pd.read_pickle(db_file)
@@ -18,42 +19,40 @@ CLASSES = ['spiny', 'aspiny']
 n_classes = len(CLASSES)
 EPOCHS = 10
 
-def train_LSTM_model(x_train, x_test, y_train, y_test):
-    n_features = x_train.shape[2]
-    n_steps = x_train.shape[1]
-    hidden_layer_size = 32
+def get_LSTM_model(n_features, n_steps,  hidden_layer_size=64):
     model = Sequential()
-    model.add(LSTM(hidden_layer_size, input_shape=(n_steps, n_features), return_sequences=True))
-    model.add(Dropout(0.2))
-    model.add(LSTM(hidden_layer_size*2, input_shape=(n_steps, n_features)))
-    model.add(Dropout(0.2))
-    model.add(Dense(200, activation='relu'))
-    model.add(Dropout(0.2))
+    # model.add(LSTM(hidden_layer_size, input_shape=(n_steps, n_features), return_sequences=True))
+    model.add(LSTM(hidden_layer_size, input_shape=(n_steps, n_features)))
+    model.add(Dropout(0.5))
     model.add(Dense(300, activation='relu'))
-    model.add(Dropout(0.2))
-    model.add(Dense(300, activation='relu'))
-    model.add(Dropout(0.2))
-    model.add(Dense(3, activation='linear'))
-    model.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
-    model.fit(x_train, y_train, epochs=EPOCHS)
+    model.add(Dense(1, activation='sigmoid'))
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     return model
 
 
-
 if __name__ == '__main__':
-    train_datagen = ImageDataGenerator(validation_split=0.2)  # included in our dependencies
+    # df = pd.read_csv(db_file, names=['response', 'layer'], dtype={'response': 'object', 'layer': 'str'})
+    df = pd.read_pickle(db_file)
+    df = df[df['dendrite_type'].isin(['spiny', 'aspiny'])]
+    df['dendrite_type'] = pd.Categorical(df['dendrite_type'])
+    try:
+        df = df.drop('490278904_39') # Found to be bad samples
+    except:
+        pass
 
-    train_generator = train_datagen.flow_from_directory('data/images/3dgaf',
-                                                        color_mode='rgb',
-                                                        batch_size=BATCH_SIZE,
-                                                        class_mode='categorical',
-                                                        shuffle=True,
-                                                        subset='training')  # )
+    train_dir = 'data/time_series/train/'
+    train_cells = [os.path.splitext(x)[0] for x in os.listdir(train_dir)]
+    train_idx = df.index.isin(train_cells)
+    test_dir = 'data/time_series/test/'
+    test_cells = [os.path.splitext(x)[0] for x in os.listdir(test_dir)]
+    test_idx = df.index.isin(test_cells)
 
-    validation_generator = train_datagen.flow_from_directory('data/images/3dgaf',
-                                                             target_size=(224, 224),
-                                                             color_mode='rgb',
-                                                             batch_size=BATCH_SIZE,
-                                                             class_mode='categorical',
-                                                             shuffle=True,
-                                                             subset='validation')  # set as validation data
+    train_generator = SequenceGen(train_dir, df.index[train_idx], df['dendrite_type'][train_idx].cat.codes)
+    test_generator = SequenceGen(test_dir, df.index[test_idx], df['dendrite_type'][test_idx].cat.codes)
+
+    n_feats = 1
+    n_steps = 450000
+    model1 = get_LSTM_model(n_steps, n_feats)
+    model1.fit_generator(generator=train_generator,
+                         validation_data=test_generator, epochs=EPOCHS)
+    model1.save('data/models/lstm')

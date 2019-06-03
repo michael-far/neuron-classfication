@@ -13,20 +13,20 @@ df = pd.read_pickle(db_file)
 df['layer'] = df['layer'].replace(['6a', '6b'], 6)
 df['layer'] = df['layer'].replace('2/3', 2)
 df['layer'] = df['layer'].astype('int')
-# CLASSES = ['2', '4', '5', '6']
-CLASSES = ['spiny', 'aspiny']
+CLASSES = ['2', '4', '5', '6']
+# CLASSES = ['spiny', 'aspiny']
 n_classes = len(CLASSES)
 
 np.random.seed(42)
-data = vi.ImageDataBunch.from_folder('data/images/3dgadf_copy', train="train", valid='test',
-                                  ds_tfms=vi.get_transforms(do_flip=False), bs=16)
+data = vi.ImageDataBunch.from_folder('data/images/3dgadf', train="train", valid='test',
+                                  ds_tfms=None, bs=8)
 data.normalize()
 
 learn = vi.cnn_learner(data, vi.models.resnet50, metrics=vi.accuracy)
 
 learn.fit(epochs=100, lr=0.01)
 
-learn.save('3dgadf')
+learn.save('3dgadf_by_layers')
 pred = []
 for item in data.valid_ds:
         pred.append(str(learn.predict(item[0])[0]))

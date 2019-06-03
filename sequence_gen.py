@@ -1,19 +1,19 @@
 from keras.utils import Sequence, to_categorical
+from sklearn.preprocessing import scale
 import numpy as np
-
+import os
 
 class SequenceGen(Sequence):
     'Generates data for Keras'
-    def __init__(self, data_dir, ids, labels, batch_size=32, dim=(1, 450000), n_channels=1,
-                 n_classes=10, shuffle=True):
+    def __init__(self, data_dir, ids, labels, batch_size=16, dim=(1, 450000),
+                 shuffle=True):
         'Initialization'
         self.data_dir = data_dir
         self.dim = dim
         self.batch_size = batch_size
         self.labels = labels
         self.ids = ids
-        self.n_channels = n_channels
-        self.n_classes = n_classes
+        self.n_classes = len(np.unique(labels))
         self.shuffle = shuffle
         self.on_epoch_end()
 
@@ -43,7 +43,7 @@ class SequenceGen(Sequence):
     def __data_generation(self, ids_temp):
         'Generates data containing batch_size samples'  # X : (n_samples, *dim, n_channels)
         # Initialization
-        X = np.empty((self.batch_size, *self.dim, self.n_channels))
+        X = np.empty((self.batch_size, *self.dim))
         y = np.empty(self.batch_size, dtype=int)
 
         # Generate data
@@ -53,5 +53,21 @@ class SequenceGen(Sequence):
 
             # Store class
             y[i] = self.labels[ID]
+        X = np.expand_dims(scale(X.squeeze()), 1)
+        return X, y
 
-        return X, to_categorical(y, num_classes=self.n_classes)
+if __name__ == '__main__':
+    import pandas as pd
+
+    db_file = '/media/wd/data/cells/db.p'
+    data_dir = 'data/time_series/train/'
+    # df = pd.read_csv(db_file, names=['response', 'layer'], dtype={'response': 'object', 'layer': 'str'})
+    df = pd.read_pickle(db_file)
+    df = df[df['dendrite_type'].isin(['spiny', 'aspiny'])]
+    df['dendrite_type'] = pd.Categorical(df['dendrite_type'])
+    cells = [os.path.splitext(x)[0] for x in os.listdir(data_dir)]
+    s = SequenceGen(data_dir, df.index[df.index.isin(cells)], df['dendrite_type'].cat.codes)
+    a = s.__getitem__(1)
+    print(a)
+    a = s.__getitem__(2)
+    print(a)

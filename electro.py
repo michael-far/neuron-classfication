@@ -53,7 +53,7 @@ def convert_cell(cell: int, df: pd.DataFrame, out_dir:str):
 
 
 if __name__ == '__main__':
-    out_dir = 'data/images/3dgadf_copy/'
+    out_dir = 'data/images/3dgadf_spiny_aspiny/'
     # pool = Pool()
     cells = df.index
     for cell in cells:
