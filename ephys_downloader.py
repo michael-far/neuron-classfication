@@ -113,3 +113,20 @@ def create_data(data_path):
 
 if __name__ == '__main__':
     create_data('/media/wd/data')
+
+    
+"""
+plt.subplot(2,1,1)
+plt.plot(np.linspace(0,9,len(relevant_signal)), sweep_data['stimulus'][relevant_signal])
+plt.xlabel('Time [sec]')
+plt.ylabel('mV')
+plt.title('Stimulation')
+
+plt.subplot(2,1,2)
+plt.plot(np.linspace(0,9,len(relevant_signal)), sweep_data['response'][relevant_signal])
+plt.xlabel('Time [sec]')
+plt.ylabel('mV')
+plt.title('Recording')
+plt.subplots_adjust(hspace=0.5)
+
+"""
