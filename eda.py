@@ -1,10 +1,9 @@
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import pickle
 import os
-import shutil
 import random
+from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
+
 
 db_file = '/media/wd/data/cells/db.p'
 # df = pd.read_csv(db_file, names=['response', 'layer'], dtype={'response': 'object', 'layer': 'str'})
@@ -43,11 +42,11 @@ def move_to_class_folder(cell, sort_by, out_dir, file_type='png'):
     os.rename('{}{}.{}'.format(out_dir, cell, file_type), '{}{}/{}.{}'.format(out_dir, class_name, cell, file_type))
 
 
-def arrange_files(out_dir, ext):
+def arrange_files(out_dir, ext, class_type):
     cells = df.index[df['dendrite_type'].isin(['spiny', 'aspiny'])]
     for cell in cells:
         # convert_cell(cell, df, out_dir)
-        move_to_class_folder(cell, 'dendrite_type', out_dir, ext)
+        move_to_class_folder(cell, class_type, out_dir, ext)
     for clas in [out_dir + x for x in CLASSES]:
         test_train_split(clas)    # print('Missing value count: {}'.format(df.isnull().sum().sum()))
 
@@ -65,9 +64,18 @@ def pca_plot(x, y):
         ax.scatter(X_r[y == i, 0], X_r[y == i, 1], X_r[y == i, 2], color=color, alpha=0.8, lw=2)
     plt.show()
 
+
+def calc_metrics(y_true, y_pred):
+    f1 = f1_score(y_true, y_pred)
+    accuracy = accuracy_score(y_true, y_pred)
+    confuse = confusion_matrix(y_true, y_pred)
+    print('Accuracy: {}, f1: {}'.format(accuracy, f1))
+    print(confuse)
+
+
 if __name__ == '__main__':
     out_dir = 'data/time_series/'
-    arrange_files(out_dir, ext='npy')
+    arrange_files(out_dir, ext='npy', class_type='dendrite_type')
     #
     # df['layer'] = df['layer'].replace(['6a', '6b'], 6)
     # df['layer'] = df['layer'].replace('2/3', 2)

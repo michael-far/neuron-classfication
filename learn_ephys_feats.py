@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import scale
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.tree import DecisionTreeClassifier
-from eda import pca_plot
+from eda import calc_metrics
 
 BATCH_SIZE = 64
 
@@ -28,11 +28,13 @@ df = df.drop(irrlevent_columns, axis=1)
 y = df.pop('dendrite_type')
 y = y.values.astype(float)
 # y = df.pop('layer')
-# y = to_categorical(y.values)
 x = df.values
 # pca_plot(x, y)
 x = scale(x)
 x_train, x_test ,y_train, y_test = train_test_split(x, y, train_size=0.75)
+# y_train_numeric = y_train
+# y_train = to_categorical(y_train.values)
+
 
 n_feats = len(df.columns)
 
@@ -41,10 +43,16 @@ model.add(Dense(256, activation='relu', input_dim=n_feats))
 model.add(Dropout(0.5))
 model.add(Dense(256, activation='relu'))
 model.add(Dropout(0.5))
+# model.add(Dense(y_train.shape[1],  activation='softmax'))
 model.add(Dense(1, activation='sigmoid'))
 model.compile(optimizer='Adam', loss='binary_crossentropy', metrics=['accuracy'])
 # model.compile(optimizer='Adam', loss='categorical_crossentropy', metrics=['accuracy'])
 model.fit(x_train, y_train, epochs=100)
-
+model.save('data/models/ephys_dnn')
 pred = model.predict_classes(x_test)
-print(accuracy_score(y_test, pred))
+calc_metrics(y_test, pred)
+
+clf = DecisionTreeClassifier()
+clf.fit(x_train, y_train)
+pred_clf = clf.predict(x_test)
+calc_metrics(y_test, pred_clf)
