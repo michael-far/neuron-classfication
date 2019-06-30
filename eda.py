@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import random
+import numpy as np
 from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
 
 
@@ -66,12 +67,45 @@ def pca_plot(x, y):
 
 
 def calc_metrics(y_true, y_pred):
-    f1 = f1_score(y_true, y_pred)
+    if type(y_true[0]) == str:
+        f1 = f1_score(y_true, y_pred, pos_label='aspiny')
+    else:
+        f1 = f1_score(y_true, y_pred)
     accuracy = accuracy_score(y_true, y_pred)
     confuse = confusion_matrix(y_true, y_pred)
-    print('Accuracy: {}, f1: {}'.format(accuracy, f1))
-    print(confuse)
+    return f1, accuracy, confuse
 
+def plot_confusion_matrix(cm, task, cmap=plt.cm.Blues):
+    title = 'Confusion matrix: ' + task
+    # Only use the labels that appear in the data
+    classes = ['Spiny', 'Aspiny']
+
+    fig, ax = plt.subplots()
+    im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
+    ax.figure.colorbar(im, ax=ax)
+    # We want to show all ticks...
+    ax.set(xticks=np.arange(cm.shape[1]),
+           yticks=np.arange(cm.shape[0]),
+           # ... and label them with the respective list entries
+           xticklabels=classes, yticklabels=classes,
+           title=title,
+           ylabel='True label',
+           xlabel='Predicted label')
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+             rotation_mode="anchor")
+
+    # Loop over data dimensions and create text annotations.
+    fmt = 'f'
+    thresh = cm.max() / 2.
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            ax.text(j, i, format(cm[i, j], fmt),
+                    ha="center", va="center",
+                    color="white" if cm[i, j] > thresh else "black")
+    fig.tight_layout()
+    plt.show()
 
 if __name__ == '__main__':
     out_dir = 'data/time_series/'

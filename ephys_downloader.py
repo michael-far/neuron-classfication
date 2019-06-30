@@ -108,6 +108,8 @@ def create_data(data_path):
     df['layer'] = df['layer'].replace(['6a', '6b'], 6)
     df['layer'] = df['layer'].replace('2/3', 2)
     df['layer'] = df['layer'].astype('int')
+    df = df[df['dendrite_type'].isin(['spiny', 'aspiny'])]
+    df['file_name'] = df.index
     with open(data_path + '/cells/db.p', 'wb') as f:
         pickle.dump(df, f, pickle.HIGHEST_PROTOCOL)
 
