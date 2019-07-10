@@ -107,33 +107,55 @@ def plot_confusion_matrix(cm, task, cmap=plt.cm.Blues):
     fig.tight_layout()
     plt.show()
 
+
+def show_rand_gadf(src_dir):
+    import matplotlib.image as mpimg
+    files = [f for f in os.listdir(src_dir)]
+    files_to_show = random.sample(files, 6)
+    f, axes = plt.subplots(2, 2)
+    for ind, ax in enumerate(axes.reshape(-1)):
+        img = mpimg.imread('{}/{}'.format(src_dir, files_to_show[ind]))
+        ax.imshow(img)
+        ax.axis('off')
+        cell_id = files_to_show[ind].split('.')[0]
+        ax.set_title(df.loc[cell_id]['dendrite_type'])
+
+    plt.suptitle('Example of GAF images')
+    plt.show()
+
+
+
+
 if __name__ == '__main__':
     out_dir = 'data/time_series/'
-    arrange_files(out_dir, ext='npy', class_type='dendrite_type')
+    # show_rand_gadf('data/images/3dgadf')
+    # arrange_files(out_dir, ext='npy', class_type='dendrite_type')
     #
-    # df['layer'] = df['layer'].replace(['6a', '6b'], 6)
-    # df['layer'] = df['layer'].replace('2/3', 2)
-    # df['layer'] = df['layer'].astype('float')
-    #
-    # df['layer'].hist(grid=False)
-    # plt.title('Layers')
-    # plt.show()
-    # plt.savefig('layers.png')
-    #
-    # df['structure_area_abbrev'].value_counts().plot(kind='bar')
-    # plt.title('Brain Regions')
-    # plt.show()
-    # plt.savefig('regions.png')
-    # plt.show()
-    #
-    # df['sampling_rate'] = df['sampling_rate'].astype('float')
-    # df['sampling_rate'].hist(grid=False)
-    # plt.title('sampling Rate')
-    # plt.savefig('sampling_rate.png')
-    # plt.show()
-    #
-    #
-    # df['dendrite_type'].value_counts().plot(kind='bar')
-    # plt.title('Dendrite type')
-    # plt.show()
-    # plt.savefig('dendrite_typs.png')
+    df['layer'] = df['layer'].replace(['6a', '6b'], 6)
+    df['layer'] = df['layer'].replace('2/3', 2)
+    df['layer'] = df['layer'].astype('float')
+
+    df['layer'].hist(grid=False)
+    plt.title('Layers')
+    plt.show()
+    plt.savefig('layers.png')
+
+    df['structure_area_abbrev'].value_counts().plot(kind='bar')
+    plt.title('Brain regions')
+    plt.xticks(rotation=45)
+    plt.show()
+    plt.savefig('regions.png')
+    plt.show()
+
+    df['sampling_rate'] = df['sampling_rate'].astype('float')
+    df['sampling_rate'].hist(grid=False)
+    plt.title('Sampling rate')
+    plt.savefig('sampling_rate.png')
+    plt.show()
+
+
+    df['dendrite_type'].value_counts().plot(kind='bar')
+    plt.title('Dendrite type')
+    plt.xticks(rotation=0)
+    plt.show()
+    plt.savefig('dendrite_typs.png')

@@ -3,10 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from keras.layers import Dense, Dropout
 from keras.models import Sequential
-from keras.utils import to_categorical
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import scale
-from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from eda import calc_metrics, plot_confusion_matrix
 from sklearn.model_selection import StratifiedKFold
@@ -20,7 +17,7 @@ df = df.dropna(axis=1)
 df = df[df['dendrite_type'].isin(['spiny', 'aspiny'])]
 df['dendrite_type'] = pd.Categorical(df['dendrite_type'])
 df['dendrite_type'] = df['dendrite_type'].cat.codes
-irrlevent_columns = [c for c in df.columns if c.endswith('index')] +\
+irrlevent_columns = [c for c in df.columns if c.endswith('_i')] + [c for c in df.columns if c.endswith('index')] + \
                     ['layer', 'mean_clipped', 'structure_area_abbrev', 'sampling_rate']
 # irrlevent_columns = [c for c in df.columns if c.endswith('index')] +\
 #                     ['dendrite_type', 'mean_clipped', 'structure_area_abbrev', 'sampling_rate']
@@ -30,7 +27,6 @@ y = y.values.astype(float)
 # y = df.pop('layer')
 x = df.values
 # pca_plot(x, y)
-x = scale(x)
 # x_train, x_test ,y_train, y_test = train_test_split(x, y, train_size=0.75)
 # y_train_numeric = y_train
 # y_train = to_categorical(y_train.values)
@@ -40,9 +36,10 @@ n_feats = len(df.columns)
 kf = StratifiedKFold(n_splits=5, random_state=42)
 stats = []
 for train_index, test_index in kf.split(x, y):
-    x_train = x[train_index]
+    scaler = StandardScaler()
+    x_train = scaler.fit_transform(x[train_index])
     y_train = y[train_index]
-    x_test = x[test_index]
+    x_test = scaler.transform(x[test_index])
     y_test = y[test_index]
     model = Sequential()
     model.add(Dense(256, activation='relu', input_dim=n_feats))
