@@ -6,7 +6,7 @@ from multiprocessing import Pool
 from scipy.misc import imsave
 import os
 
-import eda
+import helper_func
 
 
 db_file = '/media/wd/data/cells/db.p'
@@ -15,7 +15,7 @@ df['sampling_rate'] = df['sampling_rate'].astype('float')
 df['layer'] = df['layer'].replace(['6a', '6b'], 6)
 df['layer'] = df['layer'].replace('2/3', 2)
 df['layer'] = df['layer'].astype('int')
-SAMPLE_RATE = eda.get_common_sample_frequency(df)
+SAMPLE_RATE = helper_func.get_common_sample_frequency(df)
 IMG_SIZE = 224
 
 
@@ -58,4 +58,4 @@ if __name__ == '__main__':
     cells = df.index
     for cell in cells:
         # convert_cell(cell, df, out_dir)
-        eda.move_to_class_folder(cell, 'dendrite_type', out_dir)
+        helper_func.move_to_class_folder(cell, 'dendrite_type', out_dir)

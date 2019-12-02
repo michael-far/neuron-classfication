@@ -4,7 +4,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 
 import fastai.vision as vi
 from fastai.vision.data import imagenet_stats
-from eda import calc_metrics, plot_confusion_matrix
+from helper_func import calc_metrics, plot_confusion_matrix
 from sklearn.model_selection import StratifiedKFold
 
 BATCH_SIZE = 16

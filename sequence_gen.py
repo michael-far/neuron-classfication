@@ -76,7 +76,7 @@ class SequenceGen(Sequence):
         # https://notmatthancock.github.io/2017/03/23/simple-batch-stat-updates.html
         SequenceGen.scale_std = np.sqrt(samples_seen/(samples_seen+ self.batch_size)* SequenceGen.scale_std**2 +
                                         self.batch_size/(samples_seen+ self.batch_size)*std**2 +\
-                                        samples_seen * self.batch_size/(samples_seen+ self.batch_size)**2 *
+                                        samples_seen * self.batch_size/(samples_seen + self.batch_size)**2 *
                                         (SequenceGen.scale_mean - mean)**2)
         SequenceGen.scale_mean  = ((samples_seen * SequenceGen.scale_mean) + (self.batch_size * mean)) / (samples_seen + self.batch_size)
         return self.scale(x)

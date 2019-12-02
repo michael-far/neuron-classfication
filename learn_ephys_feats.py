@@ -5,7 +5,7 @@ from keras.layers import Dense, Dropout
 from keras.models import Sequential
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
-from eda import calc_metrics, plot_confusion_matrix
+from helper_func import calc_metrics, plot_confusion_matrix
 from sklearn.model_selection import StratifiedKFold
 
 BATCH_SIZE = 64

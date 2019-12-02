@@ -12,7 +12,7 @@ from keras.models import Model, Sequential
 from keras.optimizers import Adam
 
 
-from eda import calc_metrics
+from helper_func import calc_metrics
 
 BATCH_SIZE = 8
 

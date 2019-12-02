@@ -6,7 +6,7 @@ import os
 import pickle
 
 from sequence_gen import SequenceGen
-from eda import calc_metrics, plot_confusion_matrix
+from helper_func import calc_metrics, plot_confusion_matrix
 from sklearn.model_selection import StratifiedKFold
 from keras.backend.tensorflow_backend import clear_session
 from keras.backend.tensorflow_backend import get_session
