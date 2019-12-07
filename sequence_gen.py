@@ -1,12 +1,18 @@
 from keras.utils import Sequence
 import numpy as np
+from pyts.approximation.paa import PiecewiseAggregateApproximation
+from scipy.signal import find_peaks
 import os
+
+
+N_FEATS = 2
+
 
 class SequenceGen(Sequence):
     scale_mean = None
     scale_std = None
     'Generates data for Keras'
-    def __init__(self, data_dir, ids, labels, batch_size=16, dim=(1, 450000),
+    def __init__(self, data_dir, ids, labels, batch_size=16, dim=450,
                  shuffle=True):
         'Initialization'
         self.data_dir = data_dir
@@ -17,8 +23,8 @@ class SequenceGen(Sequence):
         self.n_classes = len(np.unique(labels))
         self.shuffle = shuffle
         if self.scale_mean is None:
-            SequenceGen.scale_mean = np.zeros(self.dim)
-            SequenceGen.scale_std = np.zeros(self.dim)
+            SequenceGen.scale_mean = np.zeros(N_FEATS)
+            SequenceGen.scale_std = np.zeros(N_FEATS)
         self.epoch = 0
         self.index_complete = None
         self.on_epoch_end()
@@ -51,13 +57,19 @@ class SequenceGen(Sequence):
     def __data_generation(self, ids_temp):
         'Generates data containing batch_size samples'  # X : (n_samples, *dim, n_channels)
         # Initialization
-        X = np.empty((self.batch_size, *self.dim))
+        X = np.empty((self.batch_size, N_FEATS, self.dim))
         y = np.empty((self.batch_size, 1))
-
+        paa = PiecewiseAggregateApproximation(window_size=None, output_size=self.dim)
         # Generate data
         for i, ID in enumerate(ids_temp):
             # Store sample
-            X[i, ] = np.load(self.data_dir + ID + '.npy')
+            sample = np.load(self.data_dir + ID + '.npy')
+            # X[i, 0] = paa.fit_transform(sample[0:150000].reshape((1, -1))).reshape((1, -1))
+            # X[i, 0] = paa.fit_transform(sample[150000:300000].reshape((1, -1))).reshape((1, -1))
+            # X[i, 1] = paa.fit_transform(sample[300000:450000].reshape((1, -1))).reshape((1, -1))
+            X[i, 0] = self._peak_quantize(sample[150000:300000])
+            X[i, 1] = self._peak_quantize(sample[300000:450000])
+
 
             # Store class
             y[i] = self.labels[ID]
@@ -66,25 +78,31 @@ class SequenceGen(Sequence):
             scaled_x = self.scale_batch(X)
         else:
             scaled_x = self.scale(X)
-        X = np.reshape(scaled_x, X.shape)
+        X = scaled_x.reshape((X.shape[0], self.dim, N_FEATS))
+        # X = X.reshape((X.shape[0], self.dim, N_FEATS))
         return X, y
 
     def scale_batch(self, x):
-        mean = np.mean(x, axis=0)
-        std = np.std(x, axis=0)
+        mean = np.mean(x, axis=(0, 2))
+        std = np.std(x, axis=(0, 2))
         samples_seen = (self.epoch-1) * len(self.indexes) + (self.index_complete-1) * self.batch_size
         # https://notmatthancock.github.io/2017/03/23/simple-batch-stat-updates.html
-        SequenceGen.scale_std = np.sqrt(samples_seen/(samples_seen+ self.batch_size)* SequenceGen.scale_std**2 +
-                                        self.batch_size/(samples_seen+ self.batch_size)*std**2 +\
+        SequenceGen.scale_std = np.sqrt(samples_seen/(samples_seen + self.batch_size)* SequenceGen.scale_std**2 +
+                                        self.batch_size/(samples_seen + self.batch_size)*std**2 +\
                                         samples_seen * self.batch_size/(samples_seen + self.batch_size)**2 *
                                         (SequenceGen.scale_mean - mean)**2)
-        SequenceGen.scale_mean  = ((samples_seen * SequenceGen.scale_mean) + (self.batch_size * mean)) / (samples_seen + self.batch_size)
+        SequenceGen.scale_mean = ((samples_seen * SequenceGen.scale_mean) + (self.batch_size * mean)) / (samples_seen + self.batch_size)
         return self.scale(x)
 
     def scale(self, x):
-        x -= self.scale_mean
-        x /= self.scale_std
+        x = np.subtract(x, self.scale_mean.reshape(N_FEATS, 1))
+        x = np.divide(x, self.scale_std.reshape(N_FEATS, 1))
         return x
+
+    def _peak_quantize(self, signal: np.ndarray):
+        signal_parts = np.array_split(signal, self.dim)
+        return np.array([float(len(find_peaks(x)[0])) for x in signal_parts])
+
 
 if __name__ == '__main__':
     import pandas as pd

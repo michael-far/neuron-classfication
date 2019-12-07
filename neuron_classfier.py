@@ -78,9 +78,14 @@ class NeuronClassifier:
 
         df = pd.DataFrame(data=cell_db).transpose()
         df['sampling_rate'] = df['sampling_rate'].astype('float')
-        df['layer'] = df['layer'].replace(['6a', '6b'], 6)
-        df['layer'] = df['layer'].replace('2/3', 2)
+        if self.species == 'mouse':
+            df['layer'] = df['layer'].replace(['6a', '6b'], 6)
+            df['layer'] = df['layer'].replace('2/3', 2)
         df['layer'] = df['layer'].astype('int')
+        try:
+            df = df.drop('490278904_39')  # Found to be bad samples
+        except:
+            pass
         df = df[df['dendrite_type'].isin(['spiny', 'aspiny'])]
         df['file_name'] = df.index
         with open(self._paths['root'] + '/db.p', 'wb') as f:

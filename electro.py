@@ -9,13 +9,12 @@ import os
 import helper_func
 
 
-db_file = '/media/wd/data/cells/db.p'
-df = pd.read_pickle(db_file)
-df['sampling_rate'] = df['sampling_rate'].astype('float')
-df['layer'] = df['layer'].replace(['6a', '6b'], 6)
-df['layer'] = df['layer'].replace('2/3', 2)
-df['layer'] = df['layer'].astype('int')
-SAMPLE_RATE = helper_func.get_common_sample_frequency(df)
+# db_file = '/media/wd/data/cells/db.p'
+# df = pd.read_pickle(db_file)
+# df['sampling_rate'] = df['sampling_rate'].astype('float')
+# df['layer'] = df['layer'].replace(['6a', '6b'], 6)
+# df['layer'] = df['layer'].replace('2/3', 2)
+# df['layer'] = df['layer'].astype('int')
 IMG_SIZE = 224
 
 
@@ -46,16 +45,17 @@ def convert_cell(cell: int, df: pd.DataFrame, out_dir:str):
     cell_file_name = df.loc[cell]['response_file']
     stim_file_name = df.loc[cell]['stimulation_given']
     current_sample_rate =  df.loc[cell]['sampling_rate']
-    file_to_image(cell_file_name, out_dir, stim_file_name, resample=int(current_sample_rate/SAMPLE_RATE))
+    target_sample_rate = helper_func.get_common_sample_frequency(df)
+    file_to_image(cell_file_name, out_dir, stim_file_name, resample=int(current_sample_rate/target_sample_rate))
 
 
 
 
 
-if __name__ == '__main__':
-    out_dir = 'data/images/3dgadf_spiny_aspiny/'
-    # pool = Pool()
-    cells = df.index
-    for cell in cells:
-        # convert_cell(cell, df, out_dir)
-        helper_func.move_to_class_folder(cell, 'dendrite_type', out_dir)
+# if __name__ == '__main__':
+#     out_dir = 'data/images/3dgadf_spiny_aspiny/'
+#     # pool = Pool()
+#     cells = df.index
+#     for cell in cells:
+#         # convert_cell(cell, df, out_dir)
+#         helper_func.move_to_class_folder(cell, 'dendrite_type', out_dir)

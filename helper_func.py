@@ -1,3 +1,4 @@
+from typing import Dict, List
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
@@ -6,9 +7,9 @@ import numpy as np
 from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
 
 
-db_file = '/media/wd/data/cells/db.p'
+# db_file = '/media/wd/data/cells/db.p'
 # df = pd.read_csv(db_file, names=['response', 'layer'], dtype={'response': 'object', 'layer': 'str'})
-df = pd.read_pickle(db_file)
+# df = pd.read_pickle(db_file)
 # df = df.astype('str')
 # CLASSES = ['2', '4', '5', '6']
 CLASSES = ['spiny', 'aspiny']
@@ -75,6 +76,19 @@ def calc_metrics(y_true, y_pred):
     confuse = confusion_matrix(y_true, y_pred)
     return f1, accuracy, confuse
 
+def random_search_helper(params: Dict[str, List], n_iters:int = 10) -> dict:
+    prev_chosen = []
+    i = 0
+    while i < n_iters:
+        res = dict.fromkeys(params.keys())
+        for k, v in params.items():
+            res[k] = np.random.choice(v)
+        if not any([res == x for x in prev_chosen]):
+            i += 1
+            prev_chosen.append(res)
+            yield res
+
+
 def plot_confusion_matrix(cm, task, cmap=plt.cm.Blues):
     title = 'Confusion matrix: ' + task
     # Only use the labels that appear in the data
@@ -105,7 +119,7 @@ def plot_confusion_matrix(cm, task, cmap=plt.cm.Blues):
                     ha="center", va="center",
                     color="white" if cm[i, j] > thresh else "black")
     fig.tight_layout()
-    plt.show()
+    # plt.show()
 
 
 def show_rand_gadf(src_dir):
