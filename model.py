@@ -33,7 +33,7 @@ class Model(ABC):
 
     def _save_results(self, params: dict, results: dict, sum_cm: np.ndarray, task: str):
         headers = [str(x) for x in params.keys()] + [str(x) for x in results.keys()]
-        file_prefix = os.path.join(self._files_root, task)
+        file_prefix = os.path.join(self._files_root, 'results', task)
         param_prefix = '_'.join([str(x) for x in params.values()])
         results_full_file_name = file_prefix + '_results.csv'
         if not os.path.isfile(results_full_file_name):

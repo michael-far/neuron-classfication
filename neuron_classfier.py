@@ -17,12 +17,12 @@ from electro import activity_to_image
 warnings.filterwarnings('ignore', category=H5pyDeprecationWarning)
 
 
-class NeuronClassifier:
+class NeuronClassifierSetup:
     def __init__(self, species: str, save_path: str, sample_rate: float = 50000.0):
         self.species = getattr(CellTypesApi, species.upper())
         root_path = '{}/{}'.format(save_path, species)
         self._paths = {'root': root_path, 'time_series': root_path + '/data/time_series/',
-                       'images': root_path + '/data/images/'}
+                       'images': root_path + '/data/images/', 'results': 'results/'}
         if not os.path.exists(root_path):
             [os.makedirs(path) for path in self._paths.values()]
         self._sample_rate = sample_rate
@@ -124,5 +124,5 @@ class NeuronClassifier:
         return result
 
 if __name__ == '__main__':
-    nc = NeuronClassifier('human', 'data')
+    nc = NeuronClassifierSetup('human', 'data')
     nc.create_data()

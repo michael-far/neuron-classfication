@@ -11,6 +11,11 @@ from model import Model
 class CnnTransferModel(Model):
     def __init__(self, db: pd.DataFrame, num_layers: Union[int, None], epochs: int = 10, learn_rate: float = 0.01,
                  files_root: str = ''):
+        if num_layers == 0:
+            num_layers = None
+        if 'file_name' not in db.columns:
+                db['file_name'] = db.index
+
         super(CnnTransferModel, self).__init__(db, num_layers=num_layers,  epochs=epochs, files_root=files_root)
         self._learn_rate = learn_rate
 

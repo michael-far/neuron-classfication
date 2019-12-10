@@ -12,7 +12,7 @@ from helper_func import calc_metrics, plot_confusion_matrix
 
 
 class FeatureLearner(Model):
-    def __init__(self, db: pd.DataFrame, num_layers: int, num_nodes: int, batch_size: int = 64, epochs: int = 10,
+    def __init__(self, db: pd.DataFrame, num_layers: int, num_nodes: int, batch_size: int = 64, epochs: int = 100,
                  files_root: str = ''):
         db = db.dropna(axis=1)
         irrelevant_columns = [c for c in db.columns if c.endswith('_i')] + \
