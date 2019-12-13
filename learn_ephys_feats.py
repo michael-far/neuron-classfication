@@ -4,7 +4,6 @@ import numpy as np
 from keras.layers import Dense, Dropout
 from keras.models import Sequential
 from sklearn.preprocessing import StandardScaler
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import StratifiedKFold
 
 from model import Model
