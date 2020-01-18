@@ -9,14 +9,15 @@ from helper_func import calc_metrics, plot_confusion_matrix
 
 
 class Knn(Model):
-    def __init__(self, db: pd.DataFrame, k: int, files_root: str = ''):
-            db = db.dropna(axis=1)
-            irrelevant_columns = [c for c in db.columns if c.endswith('_i')] + \
-                                 [c for c in db.columns if c.endswith('index')] + \
-                                 ['layer', 'mean_clipped', 'structure_area_abbrev', 'sampling_rate']
-            db = db.drop(irrelevant_columns, axis=1)
-            self._k = k
-            super(Knn, self).__init__(db, files_root=files_root)
+    def __init__(self, db: pd.DataFrame, k: int, files_root: str = '', segment_length: float = 3.0):
+        db = db[db['segment_length'] == segment_length]
+        db = db.dropna(axis=1)
+        irrelevant_columns = [c for c in db.columns if c.endswith('_i')] + \
+                             [c for c in db.columns if c.endswith('index')] + \
+                             ['layer', 'mean_clipped', 'structure_area_abbrev', 'sampling_rate', 'segment_length']
+        db = db.drop([x for x in irrelevant_columns if x in db.columns], axis=1)
+        self._k = k
+        super(Knn, self).__init__(db, files_root=files_root, segment_length=segment_length)
 
     def _create_model(self):
         model = KNeighborsClassifier(self._k)
@@ -25,7 +26,7 @@ class Knn(Model):
     def test(self):
         pass
 
-    def train_and_test(self):
+    def train_and_test(self, previous_accuracy: float = 0.0):
         df = self._db
         df['dendrite_type'] = pd.Categorical(df['dendrite_type'])
         df['dendrite_type'] = df['dendrite_type'].cat.codes

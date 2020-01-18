@@ -63,12 +63,12 @@ class SequenceGen(Sequence):
         # Generate data
         for i, ID in enumerate(ids_temp):
             # Store sample
-            sample = np.load(self.data_dir + ID + '.npy')
+            sample = np.load(os.path.join(self.data_dir, ID + '.npy'))
             # X[i, 0] = paa.fit_transform(sample[0:150000].reshape((1, -1))).reshape((1, -1))
             # X[i, 0] = paa.fit_transform(sample[150000:300000].reshape((1, -1))).reshape((1, -1))
             # X[i, 1] = paa.fit_transform(sample[300000:450000].reshape((1, -1))).reshape((1, -1))
-            X[i, 0] = self._peak_quantize(sample[150000:300000])
-            X[i, 1] = self._peak_quantize(sample[300000:450000])
+            X[i, 0] = self._peak_quantize(sample[1*len(sample)//3:2*len(sample)//3])
+            X[i, 1] = self._peak_quantize(sample[2*len(sample)//3:len(sample)])
 
 
             # Store class

@@ -1,31 +1,31 @@
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import StratifiedKFold
 
 from model import Model
 from helper_func import calc_metrics, plot_confusion_matrix
 
 
-class RandomForest(Model):
-    def __init__(self, db: pd.DataFrame, n_estimators: int, files_root: str = ''):
-            db = db.dropna(axis=1)
-            irrelevant_columns = [c for c in db.columns if c.endswith('_i')] + \
-                                 [c for c in db.columns if c.endswith('index')] + \
-                                 ['layer', 'mean_clipped', 'structure_area_abbrev', 'sampling_rate']
-            db = db.drop(irrelevant_columns, axis=1)
-            self._n_estimators = n_estimators
-            super(RandomForest, self).__init__(db, files_root=files_root)
+class NaiveBayes(Model):
+    def __init__(self, db: pd.DataFrame, files_root: str = '', segment_length: float = 3.0):
+        db = db[db['segment_length'] == segment_length]
+        db = db.dropna(axis=1)
+        irrelevant_columns = [c for c in db.columns if c.endswith('_i')] + \
+                             [c for c in db.columns if c.endswith('index')] + \
+                             ['layer', 'mean_clipped', 'structure_area_abbrev', 'sampling_rate', 'segment_length']
+        db = db.drop([x for x in irrelevant_columns if x in db.columns], axis=1)
+        super(NaiveBayes, self).__init__(db, files_root=files_root, segment_length=segment_length)
 
     def _create_model(self):
-        model = RandomForestClassifier(self._n_estimators)
+        model = GaussianNB()
         return model
 
     def test(self):
         pass
 
-    def train_and_test(self):
+    def train_and_test(self, previous_accuracy: float = 0.0):
         df = self._db
         df['dendrite_type'] = pd.Categorical(df['dendrite_type'])
         df['dendrite_type'] = df['dendrite_type'].cat.codes
@@ -51,6 +51,6 @@ class RandomForest(Model):
 
         sum_cm = np.asarray([x[2] for x in stats]).sum(axis=0)
         sum_cm = sum_cm / sum_cm.astype(np.float).sum(axis=1)
-        params = {'n_estimators': self._n_estimators}
+        params = {'a': None}
         res = {'mean_accuracy': mean_accuracy, 'mean_f1': mean_f1}
-        self._save_results(params, res, sum_cm, 'rf')
+        self._save_results(params, res, sum_cm, 'nb')
