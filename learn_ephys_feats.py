@@ -14,7 +14,8 @@ class FeatureLearner(Model):
     def __init__(self, db: pd.DataFrame, num_layers: int, num_nodes: int, batch_size: int = 64, epochs: int = 100,
                  files_root: str = '', segment_length: float = 3.0):
         db = db[db['segment_length'] == segment_length]
-        db = db.dropna(axis=1)
+        db = db.dropna(axis=1, how='all')
+        db = db.dropna(axis=0)
         irrelevant_columns = [c for c in db.columns if c.endswith('_i')] + \
                             [c for c in db.columns if c.endswith('index')] +\
                             ['layer', 'mean_clipped', 'structure_area_abbrev', 'sampling_rate', 'segment_length']

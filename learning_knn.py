@@ -11,7 +11,8 @@ from helper_func import calc_metrics, plot_confusion_matrix
 class Knn(Model):
     def __init__(self, db: pd.DataFrame, k: int, files_root: str = '', segment_length: float = 3.0):
         db = db[db['segment_length'] == segment_length]
-        db = db.dropna(axis=1)
+        db = db.dropna(axis=1, how='all')
+        db = db.dropna(axis=0)
         irrelevant_columns = [c for c in db.columns if c.endswith('_i')] + \
                              [c for c in db.columns if c.endswith('index')] + \
                              ['layer', 'mean_clipped', 'structure_area_abbrev', 'sampling_rate', 'segment_length']
